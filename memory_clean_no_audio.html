@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Memory – Unterrichtssprache</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align:center;
+  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+}
+h1 { margin-top:20px; }
+
+.grid {
+  display:grid;
+  grid-template-columns: repeat(4, 130px);
+  gap:12px;
+  justify-content:center;
+  margin-top:20px;
+}
+
+.card {
+  border-radius:12px;
+  padding:15px;
+  cursor:pointer;
+  background:white;
+  box-shadow:0 4px 8px rgba(0,0,0,0.2);
+  min-height:80px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+.card.hidden {
+  background:#6c8cff;
+  color:transparent;
+}
+
+button { padding:8px 15px; margin:10px; }
+</style>
+</head>
+<body>
+
+<h1>🎭 Memory – Unterrichtssprache</h1>
+
+<label>Paare: <input type="number" id="pairs" value="6" min="2" max="12"></label>
+<label><input type="checkbox" id="timerToggle"> ⏱️ Stoppuhr</label>
+<button onclick="startGame()">Start</button>
+
+<h2 id="timer"></h2>
+<div id="game" class="grid"></div>
+
+<script>
+const data = [
+["Ich habe meine Hausaufgaben nicht.","Pardon, Madame / Monsieur, je n’ai pas les devoirs."],
+["Ich bin fertig.","J’ai fini."],
+["Ich verstehe nicht.","Je ne comprends pas."],
+["Können Sie das bitte wiederholen?","Est-ce que vous pouvez répéter encore une fois ?"],
+["Darf ich auf die Toilette gehen?","Je peux aller aux toilettes, s’il vous plaît ?"],
+["Ich habe eine Frage.","J’ai une question."],
+["Wie sagt man … auf Französisch?","Comment on dit … en français ?"],
+["Bin ich dran?","C’est à moi ?"],
+["Du bist dran.","C’est à toi."],
+["Er / Sie ist dran.","C’est à lui / elle."],
+["Entschuldigung.","Pardon."],
+["Helfen Sie mir bitte.","Aidez-moi, s’il vous plaît."]
+];
+
+let first=null, second=null, lock=false, startTime, timerInt;
+
+function startGame(){
+clearInterval(timerInt);
+document.getElementById("timer").textContent="";
+
+let num = document.getElementById("pairs").value;
+let selected = data.slice(0,num);
+
+let cards=[];
+selected.forEach(p=>{
+cards.push(p[0], p[1]);
+});
+
+cards.sort(()=>Math.random()-0.5);
+
+let game = document.getElementById("game");
+game.innerHTML="";
+
+cards.forEach(text=>{
+let div=document.createElement("div");
+div.className="card hidden";
+div.dataset.text=text;
+div.textContent=text;
+div.onclick=()=>flip(div);
+game.appendChild(div);
+});
+
+if(document.getElementById("timerToggle").checked){
+startTime=Date.now();
+timerInt=setInterval(updateTimer,1000);
+}
+}
+
+function flip(card){
+if(lock || !card.classList.contains("hidden")) return;
+
+card.classList.remove("hidden");
+card.style.color="#000";
+
+if(!first){ first=card; return; }
+
+second=card;
+lock=true;
+
+if(match(first.dataset.text, second.dataset.text)){
+reset();
+}else{
+setTimeout(()=>{
+first.classList.add("hidden");
+second.classList.add("hidden");
+first.style.color="transparent";
+second.style.color="transparent";
+reset();
+},1000);
+}
+}
+
+function match(a,b){
+return data.some(p => p.includes(a) && p.includes(b));
+}
+
+function reset(){
+first=null; second=null; lock=false;
+}
+
+function updateTimer(){
+let t=Math.floor((Date.now()-startTime)/1000);
+document.getElementById("timer").textContent="Zeit: "+t+"s";
+}
+</script>
+
+</body>
+</html>
